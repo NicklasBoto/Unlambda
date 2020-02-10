@@ -15,40 +15,31 @@ data PRED v = Elem    (SET v) (SET v)
             | Implies (PRED v) (PRED v)
             | Not     (PRED v)
 
-newtype Set = S [Set] deriving Eq
+newtype Set = S [Set] 
 
 instance Show Set where
-    show (S a) = show $ length a
+        show (S a) = show a
 
-instance (Show v, Eq v) => Show (SET v) where
+instance (Show v) => Show (SET v) where
         show Empty = "Ø"
         show (Singleton s) = "{" ++ show s ++ "}"
-        show (Union a b)   = show a ++ " ⋃ " ++ show b
-        show (Insec a b)   = show a ++ " ⋂ " ++ show b
+        show (Union a b)   = "(" ++ show a ++ " ⋃ " ++ show b ++ ")"
+        show (Insec a b)   = "(" ++ show a ++ " ⋂ " ++ show b ++ ")"
         show (Var v)       = show v
 
-instance (Show v, Eq v) => Show (PRED v) where
-        show (Elem a b)    = show a ++ " ∈ "  ++ show b
-        show (Subset a b)  = show a ++ " ⊆ "  ++ show b
-        show (And p q)     = show p ++ " ^ "  ++ show q
-        show (Or p q)      = show p ++ " ∨ "  ++ show q
-        show (Implies p q) = show p ++ " => " ++ show q
+instance (Show v) => Show (PRED v) where
+        show (Elem a b)    = "(" ++ show a ++ " ∈ "  ++ show b ++ ")"
+        show (Subset a b)  = "(" ++ show a ++ " ⊆ "  ++ show b ++ ")"
+        show (And p q)     = "(" ++ show p ++ " ^ "  ++ show q ++ ")"
+        show (Or p q)      = "(" ++ show p ++ " ∨ "  ++ show q ++ ")"
+        show (Implies p q) = "(" ++ show p ++ " => " ++ show q ++ ")"
         show (Not p)       = "¬ (" ++ show p ++ ")"
 
-instance Ord Set where -- this Ord only holds true for von Neumann ordinals
-        compare (S a) (S b) = compare (length a) (length b)
-
-instance Eq Set where
+instance Eq Set where -- we have decided on the arbitrary order of element lenghts
         (==) (S a) (S b) = (sort a) == (sort b)
 
-instance Eq v => Eq (SET v) where
-        (==) s1 s2 = check [] $ And (Subset s1 s2) (Subset s2 s1)
-
-instance Eq v => Ord (SET v) where
-        compare s1 s2
-            | s1 == s2              = EQ
-            | check [] $ Elem s1 s2 = LT
-            | otherwise             = GT
+instance Ord Set where 
+        compare (S a) (S b) = compare (length a) (length b)
 
 type Env var dom = [(var, dom)]
 
@@ -111,22 +102,6 @@ claim1 table n1 n2 = (n1 <= n2) ~> (check table (Subset s1 s2))
     where s1  = vonNeu n1
           s2  = vonNeu n2
 
-claim1' :: Env Int Set -> Int -> Int -> Bool -- with syntactic sets
-claim1' table n1 n2 = check table $ Implies (s1 <=: s2) (Subset s1 s2)
-    where s1 = vonNeu n1
-          s2 = vonNeu n2
-
--- These hold true for von Neumann ordinal
-
-(==:) :: Eq v => SET v -> SET v -> PRED v
-(==:) s1 s2 = And (Subset s1 s2) (Subset s2 s1)
-
-(<:) :: Eq v => SET v -> SET v -> PRED v
-(<:) = Elem
-
-(<=:) :: Eq v => SET v -> SET v -> PRED v
-(<=:) s1 s2 = Or (s2 <: s2) (s1 ==: s2)
-
 claim2 :: Eq v => Env v Set -> Int -> Bool -- with semantic sets
 claim2 table n = (vonNeuS table n) == (S construct)
     where construct = map (vonNeuS table) [0..(n-1)]
@@ -134,5 +109,15 @@ claim2 table n = (vonNeuS table n) == (S construct)
 claim2' :: Eq v => Env v Set -> Int -> Bool -- with syntactic sets
 claim2' table n = check table $ And (Subset s1 s2) (Subset s2 s1) 
     where s1 = vonNeu n
-          s2 = foldr1 (Union) $ map (vonNeu) [0..n]
+          s2 = foldr1 Union $ map (Singleton . vonNeu) [0..(n-1)]
+
+--------------- test cases ---------------------
+
+s1S = S [S[], S[S[]]]
+s2S = S [S[S[]], S[]]
+
+s = Singleton; e = Empty
+
+s1 = Union (s (s e)) (s e)
+s2 = Union (s e) (s (s e))
 
