@@ -38,7 +38,7 @@ instance Ring Mod2 where
         addId = Zero
         (<*>) = modMul
         (<+>) = modAdd
-        neg a = a <+> One
+        neg a = a
 
 modAdd :: Mod2 -> Mod2 -> Mod2
 modAdd a Zero = a
@@ -76,7 +76,7 @@ expr2 :: RingExp Mod2 Char
 expr2 = Mul (Var 'y') (MulId)    -- returns Zero 
 
 expr3 :: RingExp Mod2 Char       
-expr3 = Neg (Con One)            -- returns Zero
+expr3 = Neg (Con One)            -- returns One
 
 -- Both of always return true, good
 
