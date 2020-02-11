@@ -6,11 +6,11 @@ import Data.Maybe
 ---------- ring typeclass -------------
 
 class Ring a where
-        mulId :: a
-        addId :: a
-        (<*>) :: a -> a -> a
-        (<+>) :: a -> a -> a
-        neg   :: a -> a
+        mulId :: Nullary a
+        addId :: Nullary a
+        (<*>) :: Binary  a
+        (<+>) :: Binary  a
+        neg   :: Unary   a
 
 --------- RingExp datatype ---------
 
@@ -40,12 +40,12 @@ instance Ring Mod2 where
         (<+>) = modAdd
         neg a = a
 
-modAdd :: Mod2 -> Mod2 -> Mod2
+modAdd :: Binary Mod2
 modAdd a Zero = a
 modAdd Zero b = b
 modAdd _    _ = Zero
 
-modMul :: Mod2 -> Mod2 -> Mod2
+modMul :: Binary Mod2
 modMul One One = One
 modMul _   _   = Zero
 
