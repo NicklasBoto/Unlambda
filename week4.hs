@@ -2,6 +2,7 @@
 
 import Prelude hiding ((<*>)) 
 import Data.Maybe
+import Arity
 
 ---------- ring typeclass -------------
 
@@ -49,7 +50,41 @@ modMul :: Binary Mod2
 modMul One One = One
 modMul _   _   = Zero
 
--- add one more ring instance datatype
+--------------- 2x2 Matrix datatype -----------
+
+data Matrix a = Matrix a a a a -- 2x2
+
+-- doesn't work... but almost
+instance Show a => Show (Matrix a) where
+        show (Matrix a b c d) = 
+              "┌ " ++ top ++ " ┐\n" ++
+              "└ " ++ bot ++ " ┘"
+                where topChar = show a ++ " " ++ show b 
+                      botChar = show c ++ " " ++ show d
+                      topLen  = length topChar
+                      botLen  = length botChar
+                      top     = topChar ++ (unwords $ replicate (botLen-topLen) " ")
+                      bot     = botChar ++ (unwords $ replicate (topLen-botLen) " ")
+                 
+
+instance Num a => Ring (Matrix a) where
+        mulId = Matrix 1 0 0 1
+        addId = Matrix 0 0 0 0
+        (<*>) = matrixMul
+        (<+>) = matrixAdd
+        neg   = fmap negate
+
+instance Functor Matrix where -- unnecessary, but nonetheless
+        fmap f (Matrix a b c d) = Matrix (f a) (f b) (f c) (f d)
+
+matrixAdd :: Num a => Binary (Matrix a)
+matrixAdd (Matrix a b c d) (Matrix e f g h) = 
+           Matrix (a+e) (b+f) (c+g) (d+h)
+
+matrixMul :: Num a => Binary (Matrix a)
+matrixMul (Matrix a b c d) (Matrix e f g h) =
+           Matrix (a*e + b*g) (a*f + b*h)
+                  (c*e + d*g) (c*f + d*h)
 
 ----------- eval function ---------------
 
@@ -77,6 +112,8 @@ expr2 = Mul (Var 'y') (MulId)    -- returns Zero
 
 expr3 :: RingExp Mod2 Char       
 expr3 = Neg (Con One)            -- returns One
+-- x + (neg x) (mod 2) = addId -> 1 + (neg 1) (mod 2) = 0 -> neg 1 = 1
+-- x + (neg x) (mod 2) = addId -> 0 + (neg 0) (mod 2) = 0 -> neg 0 = 0
 
 -- Both of always return true, good
 
