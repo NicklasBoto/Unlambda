@@ -101,11 +101,14 @@ eval _ AddId     = addId
 
 --------- testing ------------------
 
-tabell :: Env Char Mod2
-tabell = [('x', One), ('y', Zero), ('z', One)]
+modTable :: Env Char Mod2
+modTable = [('x', One), ('y', Zero), ('z', One)]
 
-expr1 :: RingExp Mod2 Char
-expr1 = Add (Var 'x') (Con Zero) -- returns One
+matrixTable :: Env Char (Matrix Int)
+matrixTable = [('x', Matrix 1 0 0 1), ('y', Matrix 0 0 0 0), ('z', Matrix 1 2 3 4)]
+
+expr1 :: Ring a => a -> RingExp a Char
+expr1 r = Add (Var 'x') (Con r) -- returns One
 
 expr2 :: RingExp Mod2 Char
 expr2 = Mul (Var 'y') (MulId)    -- returns Zero 
@@ -118,11 +121,14 @@ expr3 = Neg (Con One)            -- returns One
 -- Both of always return true, good
 
 testMul :: Mod2 -> Bool
-testMul a = (eval tabell left) == (eval tabell right)
+testMul a = (eval modTable left) == (eval modTable right)
     where left  = (Mul (Con a) MulId)
           right = (Mul MulId (Con a))
 
 testAdd :: Mod2 -> Bool
-testAdd a = (eval tabell left) == (eval tabell right)
+testAdd a = (eval modTable left) == (eval modTable right)
     where left  = (Add (Con a) AddId)
           right = (Add AddId (Con a))
+
+
+
