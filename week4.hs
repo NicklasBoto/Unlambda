@@ -1,3 +1,5 @@
+module Week4 where
+
 ----------- imports -------------------
 
 import Prelude hiding ((<*>)) 
@@ -23,12 +25,29 @@ data RingExp c v = Con c
                  | MulId
                  | AddId
 
+instance (Show v, Show c) => Show (RingExp c v) where
+        show (Con c)   = show c
+        show (Var v)   = show v
+        show (Add a b) = show a ++ "+" ++ show b
+        show (Mul a b) = show a ++ "*" ++ show b
+        show (Neg a)   = "-" ++ show a
+        show (MulId)   = "1"
+        show (AddId)   = "0"
+
 instance Eq v => Ring (RingExp c v) where
         mulId = MulId
         addId = AddId
         (<*>) = Mul 
         (<+>) = Add
         neg   = Neg
+
+-- Integer to general ring
+intToRing :: Ring a => Integer -> a
+intToRing 0 = addId
+intToRing 1 = mulId
+intToRing n 
+          | n > 0 = (<+>) mulId (intToRing (n-1))
+          | n < 0 = neg $ intToRing (-n)
 
 ------- Integers mod 2 datatype -------
 
@@ -86,6 +105,15 @@ matrixMul (Matrix a b c d) (Matrix e f g h) =
            Matrix (a*e + b*g) (a*f + b*h)
                   (c*e + d*g) (c*f + d*h)
 
+------------ the integers ---------------
+
+instance Ring Int where 
+        addId = 0
+        mulId = 1
+        (<*>) = (*)
+        (<+>) = (+)
+        neg = negate
+
 ----------- eval function ---------------
 
 type Env var dom = [(var, dom)]
@@ -110,11 +138,11 @@ matrixTable = [('x', Matrix 1 0 0 1), ('y', Matrix 0 0 0 0), ('z', Matrix 1 2 3 
 expr1 :: Ring a => a -> RingExp a Char
 expr1 r = Add (Var 'x') (Con r) -- returns One
 
-expr2 :: RingExp Mod2 Char
+expr2 ::Ring a => RingExp a Char
 expr2 = Mul (Var 'y') (MulId)    -- returns Zero 
 
-expr3 :: RingExp Mod2 Char       
-expr3 = Neg (Con One)            -- returns One
+expr3 :: Ring a => a -> RingExp a Char       
+expr3 r = Neg (Con r)            -- returns One
 -- x + (neg x) (mod 2) = addId -> 1 + (neg 1) (mod 2) = 0 -> neg 1 = 1
 -- x + (neg x) (mod 2) = addId -> 0 + (neg 0) (mod 2) = 0 -> neg 0 = 0
 
@@ -129,6 +157,4 @@ testAdd :: Mod2 -> Bool
 testAdd a = (eval modTable left) == (eval modTable right)
     where left  = (Add (Con a) AddId)
           right = (Add AddId (Con a))
-
-
 
