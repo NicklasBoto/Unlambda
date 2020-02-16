@@ -6,7 +6,6 @@ import System.IO
 import Control.Monad
 
 data Aλ = A Aλ Aλ | E Eλ
-
 data Eλ = K 
         | Kf Eλ
         | S
@@ -18,7 +17,12 @@ data Eλ = K
 
 instance Show Aλ where
         show (A a b)   = "`" ++ show a ++ show b
-        show (E e)     = show e
+        show (E e)     = case e of
+                           K -> "k"
+                           S -> "s"
+                           I -> "i"
+                           (D a) -> "." ++ id a
+                           R     -> "r"
 
 instance Show Eλ where
         show K         = "k"
@@ -28,7 +32,7 @@ instance Show Eλ where
         show (Sff a b) = "s" ++ show a ++ show b
         show I         = ""
         show (D a)     = "." ++ id a 
-        show R         = "r"
+        show R         = "\n"
 
 -- A (A (E $ D "h") (E $ D "m")) (E I)
 -- `  ` [E $ D "h" , E $ D "m" ,  E I]
@@ -36,8 +40,8 @@ instance Show Eλ where
 -- `  `      .  h        .  m       i
 -- ``.h.mi
 
-parse :: String -> IO (Eλ)
-parse s = showEλ $ parseA (reverse $ parseE s) 
+parse :: String -> Aλ
+parse = parseA . reverse . parseE 
 
 parseA :: [Aλ] -> Aλ
 parseA []     = error "Invalid program"
@@ -49,20 +53,17 @@ parseE []         = []
 parseE (a:[])     = case a of
                       'i' -> [E I]
                       'r' -> [E R]
-parseE (a:b:cs)   = case a of
-                     '`' -> parseE (b:cs)
-                     '.' -> [E $ D [b]] ++ parseE cs
-                     'i' -> [E I] ++ parseE (b:cs)
-                     'r' -> [E R] ++ parseE (b:cs)
 parseE (a:b:c:ds) = case a of
                      '`' -> parseE (b:c:ds)
                      '.' -> [E $ D [b]] ++ parseE (c:ds)
                      'i' -> [E I] ++ parseE (b:c:ds)
                      'r' -> [E R] ++ parseE (b:c:ds)
-                     --'k' -> [E $ K 
+                     'k' -> [E K] ++ parseE (b:c:ds)
+                     's' -> [E S] ++ parseE (b:c:ds)
 
 collapse :: Eλ -> Eλ -> IO (Eλ)
-collapse (D a) b     = (putStr a) >> return b
+collapse (D a) b     = (putStr a)    >> return b
+collapse (R) a       = (putStr "\n") >> return a
 collapse (I) a       = return a
 collapse (Kf a) b    = return a  
 collapse (K) a       = return $ Kf a
@@ -75,4 +76,7 @@ collapse (Sff a b) c = collapse <$> fun <*> val >>= id
 showEλ :: Aλ -> IO (Eλ)
 showEλ (E e) = return e  
 showEλ (A l r) = collapse <$> showEλ l <*> showEλ r >>= id
+
+run :: String -> IO (Eλ)
+run = showEλ . parse
 
