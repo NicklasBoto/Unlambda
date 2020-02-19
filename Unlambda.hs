@@ -54,6 +54,7 @@ instance Show Aλ where
                            I         -> "i"
                            (D a)     -> "." ++ id a
                            R         -> "r"
+                        -- _         -> "NOT IMPLEMENTED"
 
 instance Show Eλ where
         show K         = "k"
@@ -64,6 +65,7 @@ instance Show Eλ where
         show I         = ""
         show (D a)     = "." ++ id a 
         show R         = "\n"
+     -- show _         = "NOT IMPLEMENTED" 
 
 -----------------------------------------------------------------------
 -------------------------- Parsec Parse  ------------------------------
@@ -75,7 +77,7 @@ instance Show Eλ where
         ---*-_-*-_-*-_-*---}
 
 parseLazy :: Program -> Aλ
-parseLazy = either (error . show) id . parse tryEλ "??" 
+parseLazy = either (error . show) id . parse tryEλ "***PARSE_ERROR" 
 
 -- No type because infer?
 tryEλ = try (char '`' *> (A     <$> tryEλ <*>  tryEλ))   <|>
@@ -83,7 +85,7 @@ tryEλ = try (char '`' *> (A     <$> tryEλ <*>  tryEλ))   <|>
         try (char 's' *> return (E S))                   <|>
         try (char 'k' *> return (E K))                   <|>
         try (char 'i' *> return (E I))                   <|>
-        try (char 'r' *> return (E R))                -- <|>
+        try (char 'r' *> return (E R))                -- <|> symmetry is nice!
 
 -----------------------------------------------------------------------
 --------------------------- Naive Parse  ------------------------------
@@ -126,7 +128,7 @@ parseE []         = []
 parseE (a:[])     = case a of
                       'i' -> [E I]
                       'r' -> [E R]
-                      _   -> error "parseE (1): Invalid program"
+                      _   -> error "parseE (1): Invalid program. Free nullary."
 parseE (a:b:[])   = case a of
                      '`' -> parseE [b] 
                      '.' -> [E $ D [b]]
@@ -134,7 +136,7 @@ parseE (a:b:[])   = case a of
                      'r' -> [E R] ++ parseE [b]
                      'k' -> [E K] ++ parseE [b]
                      's' -> [E S] ++ parseE [b]
-                     _   -> error "parseE (2): Invalid program"
+                     _   -> error "parseE (2): Invalid program. Free unary."
 parseE (a:b:cs) = case a of
                      '`' -> parseE (b:cs)
                      '.' -> [E $ D [b]] ++ parseE (cs)
@@ -142,10 +144,10 @@ parseE (a:b:cs) = case a of
                      'r' -> [E R] ++ parseE (b:cs)
                      'k' -> [E K] ++ parseE (b:cs)
                      's' -> [E S] ++ parseE (b:cs)
-                     _   -> error "parseE (3): Invalid program"
+                     _   -> error "parseE (3): Invalid program. Free polyary."
 
 parseSK :: Program -> [Aλ]
-parseSK [] = []
+parseSK []       = []
 parseSK (a:[])   = case a of
                        's' -> [E S]
                        'k' -> [E K]
@@ -192,7 +194,7 @@ run :: Program -> IO (Eλ)
 run = showEλ . parseLazy
 
 runFile :: Program -> IO (Eλ)
-runFile s = showEλ . parseLazy =<< fmap (concat . lines) (readFile s)
+runFile s = run =<< fmap (concat . lines) (readFile s)
 
 
 -----------------------------------------------------------------------
@@ -204,12 +206,14 @@ runFile s = showEλ . parseLazy =<< fmap (concat . lines) (readFile s)
             I don't
         ---*-_-*-_-*-_-*---}
 
-loop :: Program
-loop = "```````s``skk``skk``s``skk``sk.d.o.n.ei"
+loop       :: Program
+loop       = "```````s``skk``skk``s``skk``sk.d.o.n.ei"
 
-fibonacci :: Program
-fibonacci = "```s``s``sii`ki`k.#``s``s`ks``s`k`s`ks``s``s`ks``s`k`s`kr``s`k`sikk`k``s`ksk"
+fibonacci  :: Program
+fibonacci  = "```s``s``sii`ki`k.#``s``s`ks``s`k`s`ks``s``s`ks``s`k`s`kr``s`k`sikk`k``s`ksk"
 
 helloWorld :: Program
 helloWorld = "`````````````.H.e.l.l.o.,r.W.o.r.l.d.!i"
 
+ycomb      :: Program
+ycomb f a  = "```" ++ f ++ a ++ a ++ "``" ++ f ++ a ++ a
