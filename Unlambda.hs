@@ -2,7 +2,10 @@
 
 module Unλαmβdα
         ( parseNaive
-        , run 
+        , parseLazy
+        , runFile
+        , run    -- run/runFile call parseLazy
+        , showEλ -- showEλ . parseNaive to run naive
         ) where
 
 import Text.Parsec
@@ -28,6 +31,8 @@ data Eλ = K
         | I
         | D String
         | R
+
+type Program = String
 
 -----------------------------------------------------------------------
 ----------------------- Instances -------------------------------------
@@ -65,16 +70,15 @@ instance Show Eλ where
 -----------------------------------------------------------------------
 
         {---*-_-*-_-*-_-*--- 
-            What giving up
+            What giving up is like
             This is
-            Looks Like
         ---*-_-*-_-*-_-*---}
 
-parseLazy :: String -> Aλ
-parseLazy = either (error . show) id . parse tryEλ "unlambda" 
+parseLazy :: Program -> Aλ
+parseLazy = either (error . show) id . parse tryEλ "??" 
 
 -- No type because infer?
-tryEλ = try (char '`' *> (A <$> tryEλ <*> tryEλ))        <|>
+tryEλ = try (char '`' *> (A     <$> tryEλ <*>  tryEλ))   <|>
         try (char '.' *> (E . D <$> fmap (:[]) anyChar)) <|>
         try (char 's' *> return (E S))                   <|>
         try (char 'k' *> return (E K))                   <|>
@@ -97,7 +101,7 @@ tryEλ = try (char '`' *> (A <$> tryEλ <*> tryEλ))        <|>
 -- `  `      .  h        .  m       i
 -- ``.h.mi
 
-parseNaive :: String -> Aλ
+parseNaive :: Program -> Aλ
 parseNaive = parseA' . reverse . parseE 
 
 parseA' :: [Aλ] -> Aλ
@@ -105,10 +109,10 @@ parseA' []     = error "parseA (1): Invalid program"
 parseA' (e:[]) = e
 parseA' (e:es) = (flip A) e $ parseA' es 
 
-test :: String -> Aλ
+test :: Program -> Aλ
 test s = (flip parseA $ s) . reverse . parseE $ s
 
-parseA :: [Aλ] -> String -> Aλ
+parseA :: [Aλ] -> Program -> Aλ
 parseA [] _     = error "(1) free expression"
 parseA _ []     = error "(2) non application"
 parseA _ (a:[]) = error "(3) free application"
@@ -117,7 +121,7 @@ parseA (e:es) (a:as) = case a of
                          '`' -> (flip A) e $ parseA es as
                          _   -> parseA (e:es) (as)
 
-parseE :: String -> [Aλ]
+parseE :: Program -> [Aλ]
 parseE []         = []
 parseE (a:[])     = case a of
                       'i' -> [E I]
@@ -140,7 +144,7 @@ parseE (a:b:cs) = case a of
                      's' -> [E S] ++ parseE (b:cs)
                      _   -> error "parseE (3): Invalid program"
 
-parseSK :: String -> [Aλ]
+parseSK :: Program -> [Aλ]
 parseSK [] = []
 parseSK (a:[])   = case a of
                        's' -> [E S]
@@ -155,10 +159,10 @@ parseSK (a:b:c:ds) = case a of
                        'k' -> [E $ Kf (getE b)] ++ parseSK (c:ds)
 
 getE :: Char -> Eλ
-getE a = case a of
-           's' -> S
-           'k' -> K
-           'i' -> I
+getE 's' = S
+getE 'k' = K
+getE 'i' = I
+getE 'r' = R
 
 -----------------------------------------------------------------------
 ------------------------ Interpreter Logic ----------------------------
@@ -184,6 +188,28 @@ showEλ :: Aλ -> IO (Eλ)
 showEλ (E e)   = return e  
 showEλ (A l r) = collapse <$> showEλ l <*> showEλ r >>= id
 
-run :: String -> IO (Eλ)
+run :: Program -> IO (Eλ)
 run = showEλ . parseLazy
+
+runFile :: Program -> IO (Eλ)
+runFile s = showEλ . parseLazy =<< fmap (concat . lines) (readFile s)
+
+
+-----------------------------------------------------------------------
+------------------------ Sample Programs ------------------------------
+-----------------------------------------------------------------------
+
+        {---*-_-*-_-*-_-*--- 
+            Have fun
+            I don't
+        ---*-_-*-_-*-_-*---}
+
+loop :: Program
+loop = "```````s``skk``skk``s``skk``sk.d.o.n.ei"
+
+fibonacci :: Program
+fibonacci = "```s``s``sii`ki`k.#``s``s`ks``s`k`s`ks``s``s`ks``s`k`s`kr``s`k`sikk`k``s`ksk"
+
+helloWorld :: Program
+helloWorld = "`````````````.H.e.l.l.o.,r.W.o.r.l.d.!i"
 
