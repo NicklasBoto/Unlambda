@@ -10,6 +10,7 @@ module Unλαmβdα
 
 import Text.Parsec
 import System.IO
+import Data.Char
 import Control.Monad
 import Control.Applicative hiding ((<|>))
 
@@ -31,6 +32,7 @@ data Eλ = K
         | I
         | D String
         | R
+        | V
 
 type Program = String
 
@@ -54,17 +56,19 @@ instance Show Aλ where
                            I         -> "i"
                            (D a)     -> "." ++ id a
                            R         -> "r"
+                           V         -> "v"
                         -- _         -> "NOT IMPLEMENTED"
 
 instance Show Eλ where
-        show K         = "k"
-        show (Kf a)    = "k" ++ show a
-        show S         = "s"
+        show K         = "<k>"
+        show (Kf a)    = "<k>" ++ show a
+        show S         = "<s>"
         show (Sf a)    = show (Sff a (I))
-        show (Sff a b) = "s" ++ show a ++ show b
+        show (Sff a b) = "<s>" ++ show a ++ show b
         show I         = ""
         show (D a)     = "." ++ id a 
         show R         = "\n"
+        show V         = "<v>"
      -- show _         = "NOT IMPLEMENTED" 
 
 -----------------------------------------------------------------------
@@ -77,15 +81,15 @@ instance Show Eλ where
         ---*-_-*-_-*-_-*---}
 
 parseLazy :: Program -> Aλ
-parseLazy = either (error . show) id . parse tryEλ "***PARSE_ERROR" 
+parseLazy = handle . parse tryEλ "parseLazy" 
+
+handle :: Either ParseError Aλ -> Aλ
+handle = either (error . ("\nParse Error in " ++) . show) id
 
 -- No type because infer?
 tryEλ = try (char '`' *> (A     <$> tryEλ <*>  tryEλ))   <|>
         try (char '.' *> (E . D <$> fmap (:[]) anyChar)) <|>
-        try (char 's' *> return (E S))                   <|>
-        try (char 'k' *> return (E K))                   <|>
-        try (char 'i' *> return (E I))                   <|>
-        try (char 'r' *> return (E R))                -- <|> symmetry is nice!
+        try (anyChar >>= (return . getA))             -- <|> symmetry is nice!
 
 -----------------------------------------------------------------------
 --------------------------- Naive Parse  ------------------------------
@@ -165,6 +169,11 @@ getE 's' = S
 getE 'k' = K
 getE 'i' = I
 getE 'r' = R
+getE 'v' = V
+getE  c  = error $ "\nParse Error in \"getE\":\nexpecting \"s\", \"k\", \"i\", or \"r\"\ngot " ++ [c]
+
+getA :: Char -> Aλ
+getA = E . getE
 
 -----------------------------------------------------------------------
 ------------------------ Interpreter Logic ----------------------------
@@ -177,6 +186,7 @@ getE 'r' = R
 collapse :: Eλ -> Eλ -> IO (Eλ)
 collapse (D a) b     = (putStr a)    >> return b
 collapse (R) a       = (putStr "\n") >> return a
+collapse (V) a       = return V
 collapse (I) a       = return a
 collapse (Kf a) b    = return a  
 collapse (K) a       = return $ Kf a
@@ -191,29 +201,34 @@ showEλ (E e)   = return e
 showEλ (A l r) = collapse <$> showEλ l <*> showEλ r >>= id
 
 run :: Program -> IO (Eλ)
-run = showEλ . parseLazy
+run = showEλ . parseLazy . filter (not . isSpace) . uncomment
 
 runFile :: Program -> IO (Eλ)
-runFile s = run =<< fmap (concat . lines) (readFile s)
+runFile s = run =<< readFile s
 
+uncomment :: Program -> Program
+uncomment []       = []
+uncomment ('#':cs) = uncomment (dropWhile (/='\n') cs) 
+uncomment (c:cs)   = [c] ++ (uncomment cs)
 
 -----------------------------------------------------------------------
 ------------------------ Sample Programs ------------------------------
 -----------------------------------------------------------------------
 
         {---*-_-*-_-*-_-*--- 
-            Have fun
+            Have fun,
             I don't
         ---*-_-*-_-*-_-*---}
 
-loop       :: Program
-loop       = "```````s``skk``skk``s``skk``sk.d.o.n.ei"
+loop :: Program
+loop = "````````s``skk``skk``s``skk``skk.d.o.n.e.!i"
 
-fibonacci  :: Program
-fibonacci  = "```s``s``sii`ki`k.#``s``s`ks``s`k`s`ks``s``s`ks``s`k`s`kr``s`k`sikk`k``s`ksk"
+fibonacci :: Program
+fibonacci = "```s``s``sii`ki`k.#``s``s`ks``s`k`s`ks``s``s`ks``s`k`s`kr``s`k`sikk`k``s`ksk"
 
 helloWorld :: Program
 helloWorld = "`````````````.H.e.l.l.o.,r.W.o.r.l.d.!i"
 
-ycomb      :: Program
-ycomb f a  = "```" ++ f ++ a ++ a ++ "``" ++ f ++ a ++ a
+ycomb :: Char -> Char -> Program
+ycomb f a = "```" ++ [f,a,a] ++ "``" ++ [f,a,a]
+
