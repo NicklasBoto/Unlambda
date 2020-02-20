@@ -87,7 +87,7 @@ handle :: Either ParseError Aλ -> Aλ
 handle = either (error . ("\nParse Error in " ++) . show) id
 
 -- No type because infer?
-tryEλ = try (char '`' *> (A     <$> tryEλ <*>  tryEλ))   <|>
+tryEλ = try (char '`' *> (A     <$> tryEλ <*>    tryEλ)) <|>
         try (char '.' *> (E . D <$> fmap (:[]) anyChar)) <|>
         try (anyChar >>= (return . getA))             -- <|> symmetry is nice!
 
@@ -208,8 +208,15 @@ runFile s = run =<< readFile s
 
 uncomment :: Program -> Program
 uncomment []       = []
-uncomment ('#':cs) = uncomment (dropWhile (/='\n') cs) 
+uncomment ('#':cs) = uncomment (dropUntil (\x -> x /= '\n' && x /= '#') cs) 
 uncomment (c:cs)   = [c] ++ (uncomment cs)
+
+-- because reasons...
+dropUntil :: (a -> Bool) -> [a] -> [a]
+dropUntil _ [] =  []
+dropUntil p (x:xs')
+            | p x = dropUntil p xs'
+            | otherwise =  xs'
 
 -----------------------------------------------------------------------
 ------------------------ Sample Programs ------------------------------
@@ -224,7 +231,7 @@ loop :: Program
 loop = "````````s``skk``skk``s``skk``skk.d.o.n.e.!i"
 
 fibonacci :: Program
-fibonacci = "```s``s``sii`ki`k.#``s``s`ks``s`k`s`ks``s``s`ks``s`k`s`kr``s`k`sikk`k``s`ksk"
+fibonacci = "```s``s``sii`ki`k.*``s``s`ks``s`k`s`ks``s``s`ks``s`k`s`kr``s`k`sikk`k``s`ksk"
 
 helloWorld :: Program
 helloWorld = "`````````````.H.e.l.l.o.,r.W.o.r.l.d.!i"
