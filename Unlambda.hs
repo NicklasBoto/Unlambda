@@ -8,8 +8,11 @@ module Unλαmβdα
         , showEλ -- showEλ . parseNaive to run naive
         ) where
 
+import           Control.Applicative hiding ((<|>))
+import           Control.Monad
 import           Control.Monad
 import           Data.Char
+import           System.IO
 import           Text.Parsec
 -----------------------------------------------------------------------
 ----------------------- Datatypes -------------------------------------
@@ -130,8 +133,8 @@ parseE [a]        = case a of
                       'i' -> [E I]
                       'r' -> [E R]
                       _   -> error "parseE (1): Invalid program. Free nullary."
+
 parseE [a,b]   = case a of
-                     '`' -> parseE [b]
                      '.' -> [E $ D [b]]
                      'i' -> E I : parseE [b]
                      'r' -> E R : parseE [b]
@@ -181,11 +184,11 @@ getA = E . getE
         ---*-_-*-_-*-_-*---}
 
 collapse :: Eλ -> Eλ -> IO Eλ
-collapse (D a) b     = putStr a    >> return b
+collapse (D a) b   = putStr a    >> return b
 collapse R a       = putStr "\n" >> return a
 collapse V a       = return V
 collapse I a       = return a
-collapse (Kf a) b    = return a
+collapse (Kf a) b  = return a
 collapse K a       = return $ Kf a
 collapse S a       = return $ Sf a
 collapse (Sf a) b    = return $ Sff a b
