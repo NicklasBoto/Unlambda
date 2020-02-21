@@ -133,18 +133,18 @@ parseE [a]        = case a of
 parseE [a,b]   = case a of
                      '`' -> parseE [b]
                      '.' -> [E $ D [b]]
-                     'i' -> [E I] ++ parseE [b]
-                     'r' -> [E R] ++ parseE [b]
-                     'k' -> [E K] ++ parseE [b]
-                     's' -> [E S] ++ parseE [b]
+                     'i' -> E I : parseE [b]
+                     'r' -> E R : parseE [b]
+                     'k' -> E K : parseE [b]
+                     's' -> E S : parseE [b]
                      _   -> error "parseE (2): Invalid program. Free unary."
 parseE (a:b:cs) = case a of
                      '`' -> parseE (b:cs)
-                     '.' -> [E $ D [b]] ++ parseE (cs)
-                     'i' -> [E I] ++ parseE (b:cs)
-                     'r' -> [E R] ++ parseE (b:cs)
-                     'k' -> [E K] ++ parseE (b:cs)
-                     's' -> [E S] ++ parseE (b:cs)
+                     '.' -> E (D [b]) : parseE cs
+                     'i' -> E I : parseE (b:cs)
+                     'r' -> E R : parseE (b:cs)
+                     'k' -> E K : parseE (b:cs)
+                     's' -> E S : parseE (b:cs)
                      _   -> error "parseE (3): Invalid program. Free polyary."
 
 parseSK :: Program -> [Aλ]
@@ -158,8 +158,8 @@ parseSK [a,b] = case a of
 parseSK [a,b,c] = case a of
                        's' -> [E $ Sff (getE b) (getE c)]
 parseSK (a:b:c:ds) = case a of
-                       's' -> [E $ Sff (getE b) (getE c)] ++ parseSK ds
-                       'k' -> [E $ Kf (getE b)] ++ parseSK (c:ds)
+                       's' -> E (Sff (getE b) (getE c)) : parseSK ds
+                       'k' -> E (Kf (getE b)) : parseSK (c:ds)
 
 getE :: Char -> Eλ
 getE 's' = S
