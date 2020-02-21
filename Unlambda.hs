@@ -135,6 +135,7 @@ parseE [a]        = case a of
                       _   -> error "parseE (1): Invalid program. Free nullary."
 
 parseE [a,b]   = case a of
+                     '`' -> parseE [b]
                      '.' -> [E $ D [b]]
                      'i' -> E I : parseE [b]
                      'r' -> E R : parseE [b]
