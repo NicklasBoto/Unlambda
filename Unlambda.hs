@@ -51,7 +51,7 @@ instance Show Aλ where
                            (Sf a)    -> "sf" ++ show (E a)
                            (Sff a b) -> "sff" ++ show (E a) ++ show (E b)
                            I         -> "i"
-                           (D a)     -> "." ++ id a
+                           (D a)     -> "." ++ a
                            R         -> "r"
                            V         -> "v"
                         -- _         -> "NOT IMPLEMENTED"
@@ -63,7 +63,7 @@ instance Show Eλ where
         show (Sf a)    = show (Sff a (I))
         show (Sff a b) = "<s>" ++ show a ++ show b
         show I         = ""
-        show (D a)     = "." ++ id a
+        show (D a)     = "." ++ a
         show R         = "\n"
         show V         = "<v>"
      -- show _         = "NOT IMPLEMENTED"
