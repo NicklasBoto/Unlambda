@@ -60,7 +60,7 @@ instance Show Eλ where
         show K         = "<k>"
         show (Kf a)    = "<k>" ++ show a
         show S         = "<s>"
-        show (Sf a)    = show (Sff a (I))
+        show (Sf a)    = show (Sff a I)
         show (Sff a b) = "<s>" ++ show a ++ show b
         show I         = ""
         show (D a)     = "." ++ a
@@ -110,27 +110,27 @@ parseNaive = parseA' . reverse . parseE
 parseA' :: [Aλ] -> Aλ
 parseA' []     = error "parseA (1): Invalid program"
 parseA' [e]    = e
-parseA' (e:es) = (flip A) e $ parseA' es
+parseA' (e:es) = flip A e $ parseA' es
 
 test :: Program -> Aλ
-test s = (flip parseA $ s) . reverse . parseE $ s
+test s = flip parseA s . reverse . parseE $ s
 
 parseA :: [Aλ] -> Program -> Aλ
 parseA [] _     = error "(1) free expression"
 parseA _ []     = error "(2) non application"
-parseA _ (a:[]) = error "(3) free application"
-parseA (e:[]) _ = e
+parseA _ [_]    = error "(3) free application"
+parseA [e] _    = e
 parseA (e:es) (a:as) = case a of
-                         '`' -> (flip A) e $ parseA es as
-                         _   -> parseA (e:es) (as)
+                         '`' -> flip A e $ parseA es as
+                         _   -> parseA (e:es) as
 
 parseE :: Program -> [Aλ]
 parseE []         = []
-parseE (a:[])     = case a of
+parseE [a]        = case a of
                       'i' -> [E I]
                       'r' -> [E R]
                       _   -> error "parseE (1): Invalid program. Free nullary."
-parseE (a:b:[])   = case a of
+parseE [a,b]   = case a of
                      '`' -> parseE [b]
                      '.' -> [E $ D [b]]
                      'i' -> [E I] ++ parseE [b]
@@ -149,13 +149,13 @@ parseE (a:b:cs) = case a of
 
 parseSK :: Program -> [Aλ]
 parseSK []       = []
-parseSK (a:[])   = case a of
+parseSK [a]   = case a of
                        's' -> [E S]
                        'k' -> [E K]
-parseSK (a:b:[]) = case a of
+parseSK [a,b] = case a of
                        's' -> [E $ Sf (getE b)]
                        'k' -> [E $ Kf (getE b)]
-parseSK (a:b:c:[]) = case a of
+parseSK [a,b,c] = case a of
                        's' -> [E $ Sff (getE b) (getE c)]
 parseSK (a:b:c:ds) = case a of
                        's' -> [E $ Sff (getE b) (getE c)] ++ parseSK ds
@@ -180,14 +180,14 @@ getA = E . getE
             `````.P.=.N.P.?i
         ---*-_-*-_-*-_-*---}
 
-collapse :: Eλ -> Eλ -> IO (Eλ)
-collapse (D a) b     = (putStr a)    >> return b
-collapse (R) a       = (putStr "\n") >> return a
-collapse (V) a       = return V
-collapse (I) a       = return a
+collapse :: Eλ -> Eλ -> IO Eλ
+collapse (D a) b     = putStr a    >> return b
+collapse R a       = putStr "\n" >> return a
+collapse V a       = return V
+collapse I a       = return a
 collapse (Kf a) b    = return a
-collapse (K) a       = return $ Kf a
-collapse (S) a       = return $ Sf a
+collapse K a       = return $ Kf a
+collapse S a       = return $ Sf a
 collapse (Sf a) b    = return $ Sff a b
 collapse (Sff a b) c = collapse <$> fun <*> val >>= id
     where fun = collapse a c
@@ -206,22 +206,22 @@ showEλ (A l r) = collapse <$> showEλ l <*> showEλ r >>= id
             Yes!
         ---*-_-*-_-*-_-*---}
 
-run :: Program -> IO (Eλ)
+run :: Program -> IO Eλ
 run = showEλ . parseLazy . filter (not . isSpace) . uncomment
 
-runFile :: String -> IO (Eλ)
+runFile :: String -> IO Eλ
 runFile s = run =<< readFile s
 
 formatParse :: Program -> Aλ
 formatParse = parseLazy . filter (not . isSpace) . uncomment
 
-formatParseFile :: String -> IO (Aλ)
+formatParseFile :: String -> IO Aλ
 formatParseFile s = return . formatParse =<< readFile s
 
 uncomment :: Program -> Program
 uncomment []       = []
 uncomment ('#':cs) = uncomment (dropUntil (\x -> x /= '\n' && x /= '#') cs)
-uncomment (c  :cs) = [c] ++ (uncomment cs)
+uncomment (c  :cs) = [c] ++ uncomment cs
 
 -- because reasons...
 dropUntil :: (a -> Bool) -> [a] -> [a]
