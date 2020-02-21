@@ -8,23 +8,20 @@ module Unλαmβdα
         , showEλ -- showEλ . parseNaive to run naive
         ) where
 
-import Text.Parsec
-import System.IO
-import Data.Char
-import Control.Monad
-import Control.Applicative hiding ((<|>))
+import           Data.Char
+import           Text.Parsec
 
 -----------------------------------------------------------------------
 ----------------------- Datatypes -------------------------------------
 -----------------------------------------------------------------------
 
-        {---*-_-*-_-*-_-*--- 
+        {---*-_-*-_-*-_-*---
             λ is beautiful
             Shut up
         ---*-_-*-_-*-_-*---}
 
 data Aλ = A Aλ Aλ | E Eλ
-data Eλ = K 
+data Eλ = K
         | Kf Eλ
         | S
         | Sf Eλ
@@ -40,7 +37,7 @@ type Program = String
 ----------------------- Instances -------------------------------------
 -----------------------------------------------------------------------
 
-        {---*-_-*-_-*-_-*--- 
+        {---*-_-*-_-*-_-*---
             Show me love
             And pretty strings
         ---*-_-*-_-*-_-*---}
@@ -66,22 +63,22 @@ instance Show Eλ where
         show (Sf a)    = show (Sff a (I))
         show (Sff a b) = "<s>" ++ show a ++ show b
         show I         = ""
-        show (D a)     = "." ++ id a 
+        show (D a)     = "." ++ id a
         show R         = "\n"
         show V         = "<v>"
-     -- show _         = "NOT IMPLEMENTED" 
+     -- show _         = "NOT IMPLEMENTED"
 
 -----------------------------------------------------------------------
 -------------------------- Parsec Parse  ------------------------------
 -----------------------------------------------------------------------
 
-        {---*-_-*-_-*-_-*--- 
+        {---*-_-*-_-*-_-*---
             What giving up is like
             This is
         ---*-_-*-_-*-_-*---}
 
 parseLazy :: Program -> Aλ
-parseLazy = handle . parse tryEλ "parseLazy" 
+parseLazy = handle . parse tryEλ "parseLazy"
 
 handle :: Either ParseError Aλ -> Aλ
 handle = either (error . ("\nParse Error in " ++) . show) id
@@ -95,7 +92,7 @@ tryEλ = try (char '`' *> (A     <$> tryEλ <*>    tryEλ)) <|>
 --------------------------- Naive Parse  ------------------------------
 -----------------------------------------------------------------------
 
-        {---*-_-*-_-*-_-*--- 
+        {---*-_-*-_-*-_-*---
             Parsing is hell
             This is dumb
             So am I
@@ -108,12 +105,12 @@ tryEλ = try (char '`' *> (A     <$> tryEλ <*>    tryEλ)) <|>
 -- ``.h.mi
 
 parseNaive :: Program -> Aλ
-parseNaive = parseA' . reverse . parseE 
+parseNaive = parseA' . reverse . parseE
 
 parseA' :: [Aλ] -> Aλ
 parseA' []     = error "parseA (1): Invalid program"
-parseA' (e:[]) = e
-parseA' (e:es) = (flip A) e $ parseA' es 
+parseA' [e]    = e
+parseA' (e:es) = (flip A) e $ parseA' es
 
 test :: Program -> Aλ
 test s = (flip parseA $ s) . reverse . parseE $ s
@@ -122,7 +119,7 @@ parseA :: [Aλ] -> Program -> Aλ
 parseA [] _     = error "(1) free expression"
 parseA _ []     = error "(2) non application"
 parseA _ (a:[]) = error "(3) free application"
-parseA (e:[]) _ = e 
+parseA (e:[]) _ = e
 parseA (e:es) (a:as) = case a of
                          '`' -> (flip A) e $ parseA es as
                          _   -> parseA (e:es) (as)
@@ -134,7 +131,7 @@ parseE (a:[])     = case a of
                       'r' -> [E R]
                       _   -> error "parseE (1): Invalid program. Free nullary."
 parseE (a:b:[])   = case a of
-                     '`' -> parseE [b] 
+                     '`' -> parseE [b]
                      '.' -> [E $ D [b]]
                      'i' -> [E I] ++ parseE [b]
                      'r' -> [E R] ++ parseE [b]
@@ -159,7 +156,7 @@ parseSK (a:b:[]) = case a of
                        's' -> [E $ Sf (getE b)]
                        'k' -> [E $ Kf (getE b)]
 parseSK (a:b:c:[]) = case a of
-                       's' -> [E $ Sff (getE b) (getE c)] 
+                       's' -> [E $ Sff (getE b) (getE c)]
 parseSK (a:b:c:ds) = case a of
                        's' -> [E $ Sff (getE b) (getE c)] ++ parseSK ds
                        'k' -> [E $ Kf (getE b)] ++ parseSK (c:ds)
@@ -179,7 +176,7 @@ getA = E . getE
 ------------------------ Interpreter Logic ----------------------------
 -----------------------------------------------------------------------
 
-        {---*-_-*-_-*-_-*--- 
+        {---*-_-*-_-*-_-*---
             `````.P.=.N.P.?i
         ---*-_-*-_-*-_-*---}
 
@@ -188,23 +185,23 @@ collapse (D a) b     = (putStr a)    >> return b
 collapse (R) a       = (putStr "\n") >> return a
 collapse (V) a       = return V
 collapse (I) a       = return a
-collapse (Kf a) b    = return a  
+collapse (Kf a) b    = return a
 collapse (K) a       = return $ Kf a
-collapse (S) a       = return $ Sf a 
+collapse (S) a       = return $ Sf a
 collapse (Sf a) b    = return $ Sff a b
 collapse (Sff a b) c = collapse <$> fun <*> val >>= id
     where fun = collapse a c
           val = collapse b c
 
 showEλ :: Aλ -> IO (Eλ)
-showEλ (E e)   = return e  
+showEλ (E e)   = return e
 showEλ (A l r) = collapse <$> showEλ l <*> showEλ r >>= id
 
 -----------------------------------------------------------------------
 ------------------------ User Input Handler ---------------------------
 -----------------------------------------------------------------------
 
-        {---*-_-*-_-*-_-*--- 
+        {---*-_-*-_-*-_-*---
             Ugly?
             Yes!
         ---*-_-*-_-*-_-*---}
@@ -223,7 +220,7 @@ formatParseFile s = return . formatParse =<< readFile s
 
 uncomment :: Program -> Program
 uncomment []       = []
-uncomment ('#':cs) = uncomment (dropUntil (\x -> x /= '\n' && x /= '#') cs) 
+uncomment ('#':cs) = uncomment (dropUntil (\x -> x /= '\n' && x /= '#') cs)
 uncomment (c  :cs) = [c] ++ (uncomment cs)
 
 -- because reasons...
@@ -237,7 +234,7 @@ dropUntil p (x:xs)
 ------------------------ Sample Programs ------------------------------
 -----------------------------------------------------------------------
 
-        {---*-_-*-_-*-_-*--- 
+        {---*-_-*-_-*-_-*---
             Have fun,
             I don't
         ---*-_-*-_-*-_-*---}
