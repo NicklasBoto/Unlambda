@@ -8,9 +8,9 @@ module Unλαmβdα
         , showEλ -- showEλ . parseNaive to run naive
         ) where
 
+import           Control.Monad
 import           Data.Char
 import           Text.Parsec
-
 -----------------------------------------------------------------------
 ----------------------- Datatypes -------------------------------------
 -----------------------------------------------------------------------
@@ -189,13 +189,13 @@ collapse (Kf a) b    = return a
 collapse K a       = return $ Kf a
 collapse S a       = return $ Sf a
 collapse (Sf a) b    = return $ Sff a b
-collapse (Sff a b) c = collapse <$> fun <*> val >>= id
+collapse (Sff a b) c = join $ collapse <$> fun <*> val
     where fun = collapse a c
           val = collapse b c
 
 showEλ :: Aλ -> IO (Eλ)
 showEλ (E e)   = return e
-showEλ (A l r) = collapse <$> showEλ l <*> showEλ r >>= id
+showEλ (A l r) = join $ collapse <$> showEλ l <*> showEλ r
 
 -----------------------------------------------------------------------
 ------------------------ User Input Handler ---------------------------
@@ -216,12 +216,12 @@ formatParse :: Program -> Aλ
 formatParse = parseLazy . filter (not . isSpace) . uncomment
 
 formatParseFile :: String -> IO Aλ
-formatParseFile s = return . formatParse =<< readFile s
+formatParseFile s = formatParse <$> readFile s
 
 uncomment :: Program -> Program
 uncomment []       = []
 uncomment ('#':cs) = uncomment (dropUntil (\x -> x /= '\n' && x /= '#') cs)
-uncomment (c  :cs) = [c] ++ uncomment cs
+uncomment (c  :cs) = c : uncomment cs
 
 -- because reasons...
 dropUntil :: (a -> Bool) -> [a] -> [a]
