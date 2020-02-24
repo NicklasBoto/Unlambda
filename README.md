@@ -12,6 +12,29 @@ I := λx.x => λx.skkx
 
 In Unlambda these are written with _s_, _k_, _i_, and application is written with _\`_. This version of the language also supports the "syntactic sugar" operators _.x_, _v_, and _r_ (which just prints newline).
 
+### How to Run
+In ghci:
+
+```haskell
+$ ghci Unlambda.hs
+```
+
+Then to run strings / .unl files.
+
+```haskell
+*Unλαmβdα > run <Program String>
+*Unλαmβdα > runFile <File Path>
+```
+
+To parse and format strings / .unl files.
+
+```haskell
+*Unλαmβdα > formatParse <String>
+*Unλαmβdα > formatParseFile <File Path>
+```
+
+Executable program file is WIP.
+
 ### Cheat Sheet
 ```
 k (“constant generator”)
@@ -37,6 +60,9 @@ v (“void”)
     
 .x (“print”) and r (“carriage return”)
     The .x function is written using two characters. The first character is a period and the second is any character. Nevertheless, .x is a single function in Unlambda, and x in this expression is merely a character (read during parsing), not a parameter to the function. The r function is exactly equivalent to .(newline). The .x function behaves like the i (identity) function, with the side effect that it prints the character x (to the standard output) when it is applied. The r function also behaves like the identity and prints a newline character.
+    
+r ("return")
+    Prints a newline, equivalent to (`.'\n'i).
 ```
 
 From David Madore's original page: <http://www.madore.org/~david/programs/unlambda/>.
