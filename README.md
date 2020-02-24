@@ -2,6 +2,7 @@
 ## Almost good Unlambda interpreter, written in Haskell
 
 **Unlambda: Your Functional Programming Language Nightmares Come True.**
+
 Unlambda is an esoteric programming language, written by David Madore. It is based on the SKI-combinator calculus, a version of the lambda calculus. The syntax consists of the operators S and K (and also I, but it can be written with S and K).
 
 ```
@@ -29,7 +30,7 @@ Then to run strings / .unl files.
 To parse and format strings / .unl files.
 
 ```haskell
-*Unλαmβdα > formatParse <String>
+*Unλαmβdα > formatParse <Program String>
 *Unλαmβdα > formatParseFile <File Path>
 ```
 
