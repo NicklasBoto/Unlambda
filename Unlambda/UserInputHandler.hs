@@ -1,4 +1,4 @@
-module UserInputHandler
+module Unlambda.UserInputHandler
         ( uncomment
         , format
         ) where

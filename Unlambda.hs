@@ -7,10 +7,10 @@ module Unλαmβdα
         , formatParseFile
         ) where
 
-import AST
-import UserInputHandler
-import Parser
-import Interpreter
+import Unlambda.AST
+import Unlambda.UserInputHandler
+import Unlambda.Parser
+import Unlambda.Interpreter
 
 run :: String -> IO Eλ
 run = showEλ . formatParse
