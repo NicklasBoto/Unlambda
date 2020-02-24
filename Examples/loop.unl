@@ -1,0 +1,8 @@
+# Program that loops forever
+````````s   # start!
+``skk       
+``skk       
+``s         
+``skk       
+``skk       # applies skk to skk forever
+.d.o.n.e.!i # and then it prints "done!"
