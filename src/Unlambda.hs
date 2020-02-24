@@ -1,6 +1,6 @@
 {-# LANGUAGE UnicodeSyntax #-}
 
-module Unλambda
+module Unλαmβdα
         ( runFile
         , run    -- run/runFile call parseLazy
         , formatParse
