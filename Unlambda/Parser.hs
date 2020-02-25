@@ -22,10 +22,13 @@ import Unlambda.AST
 parseLazy :: String -> Aλ
 parseLazy = handle . parse tryEλ "parseLazy"
 
+-- Handles errors in the parser.
 handle :: Either ParseError Aλ -> Aλ
 handle = either (error . ("\nParse Error in " ++) . show) id
 
--- No type because infer?
+-- Parses program string to the application-AST.
+-- The anyChar tries to match some character to a
+-- λ-expression.
 tryEλ = try (char '`' *> (A     <$> tryEλ <*>    tryEλ)) <|>
         try (char '.' *> (E . D <$> fmap (:[]) anyChar)) <|>
         try (anyChar >>= (return . getA))             -- <|> symmetry is nice!
@@ -57,6 +60,7 @@ parseA' (e:es) = flip A e $ parseA' es
 test :: String -> Aλ
 test s = flip parseA s . reverse . parseE $ s
 
+-- Parses the λ-applications
 parseA :: [Aλ] -> String -> Aλ
 parseA [] _     = error "(1) free expression"
 parseA _ []     = error "(2) non application"
@@ -66,6 +70,7 @@ parseA (e:es) (a:as) = case a of
                          '`' -> flip A e $ parseA es as
                          _   -> parseA (e:es) as
 
+-- Parses the λ-expressions
 parseE :: String -> [Aλ]
 parseE []         = []
 parseE [a]        = case a of
@@ -90,6 +95,7 @@ parseE (a:b:cs) = case a of
                      's' -> E S : parseE (b:cs)
                      _   -> error "parseE (3): Invalid program. Free polyary."
 
+-- WIP
 parseSK :: String -> [Aλ]
 parseSK []       = []
 parseSK [a]   = case a of
@@ -104,6 +110,7 @@ parseSK (a:b:c:ds) = case a of
                        's' -> E (Sff (getE b) (getE c)) : parseSK ds
                        'k' -> E (Kf (getE b)) : parseSK (c:ds)
 
+-- Might use a hash table for this later
 getE :: Char -> Eλ
 getE 's' = S
 getE 'k' = K

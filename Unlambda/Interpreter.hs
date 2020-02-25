@@ -16,6 +16,9 @@ import Unlambda.AST
             `````.P.=.N.P.?i
         ---*-_-*-_-*-_-*---}
 
+-- Main function for interpreter logic.
+-- Evaluates the individual combinators 
+-- using partial application when polyary. 
 collapse :: Eλ -> Eλ -> IO Eλ
 collapse (D a) b   = putStr a    >> return b
 collapse R a       = putStr "\n" >> return a
@@ -29,6 +32,7 @@ collapse (Sff a b) c = join $ collapse <$> fun <*> val
     where fun = collapse a c
           val = collapse b c
 
+-- Applies the collapsed expressions to each other
 showEλ :: Aλ -> IO (Eλ)
 showEλ (E e)   = return e
 showEλ (A l r) = join $ collapse <$> showEλ l <*> showEλ r

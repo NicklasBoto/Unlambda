@@ -14,7 +14,11 @@ module Unlambda.AST
             Shut up
         ---*-_-*-_-*-_-*---}
 
+-- Application datatype for representing programs as an AST
 data Aλ = A Aλ Aλ | E Eλ
+
+-- Datatype for representing the individual combinators
+-- This is what is collapsed in the interpreter logic
 data Eλ = K
         | Kf Eλ
         | S
