@@ -1,4 +1,4 @@
-# Unλαmβdα
+# Unλαmβdα, or GUI (Gothenburg Unlambda Interpreter...)
 ## Almost good Unlambda interpreter, written in Haskell
 
 **Unlambda: Your Functional Programming Language Nightmares Come True.**
