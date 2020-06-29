@@ -25,6 +25,6 @@ main :: IO Eλ
 main = do
         (flag, text) <- options "Unλαmβdα - The Gothenburg Unlambda Interpreter\nversion 1.1" getFile
         if flag then
-                interpretString "`si"
+                interpretString text
         else
                 interpretFile text
