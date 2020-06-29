@@ -13,11 +13,24 @@ I := λx.x => λx.skkx
 
 In Unlambda these are written with _s_, _k_, _i_, and application is written with _\`_. This version of the language also supports the "syntactic sugar" operators _.x_, _v_, and _r_ (which just prints newline).
 
-### How to Run
-In ghci:
+### Installation
+Install it with stack:
 
 ```haskell
-$ ghci Unlambda.hs
+$ stack install
+```
+
+Then add `~/.local/bin/` to your path. You can do this most simply by adding this to your bashrc (replacing USER with your username, of course):
+
+```bash
+export PATH=/home/USER/.local/bin:$PATH
+```
+
+### How to Run
+#### In ghci
+
+```haskell
+$ stack ghci src/Run.hs
 ```
 
 Then to run strings / .unl files.
@@ -34,7 +47,13 @@ To parse and format strings / .unl files.
 *Unλαmβdα > formatParseFile <File Path>
 ```
 
-Executable program file is WIP.
+#### Using gui
+
+After installation, run:
+
+```haskell
+$ gui --help
+```
 
 ### Cheat Sheet
 ```
