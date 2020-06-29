@@ -1,6 +1,6 @@
 {-# LANGUAGE UnicodeSyntax #-}
 
-module Unlambda.Parser
+module Parser
         ( parseLazy
         , parseNaive
         , getE
@@ -8,7 +8,7 @@ module Unlambda.Parser
         ) where
 
 import Text.Parsec
-import Unlambda.AST
+import AST
 
 -----------------------------------------------------------------------
 -------------------------- Parsec Parse  ------------------------------

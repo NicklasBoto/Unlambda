@@ -1,9 +1,7 @@
-module Unlambda.UserInputHandler
+module UserInputHandler
         ( uncomment
         , format
         ) where
-
-import Data.Char
 
 -----------------------------------------------------------------------
 ------------------------ User Input Handler ---------------------------
@@ -16,10 +14,15 @@ import Data.Char
 
 -- Filters away \n, \t, and " "
 format :: String -> String
-format = filter (not . isSpace) . uncomment
+format = filter notSpace . uncomment
+
+notSpace :: Char -> Bool
+notSpace '\n' = False
+notSpace '\t' = False
+notSpace   _  = True
 
 -- Removes full-line and in-line comments.
--- Note that Madore's Unlambda does not support inline commenting.
+-- Note that Madore's Unlambda does not support multiline/inline commenting.
 uncomment :: String -> String
 uncomment []       = []
 uncomment ('#':cs) = uncomment (dropUntil (\x -> x /= '\n' && x /= '#') cs)

@@ -1,16 +1,16 @@
 {-# LANGUAGE UnicodeSyntax #-}
 
-module Unλαmβdα
-        ( runFile
-        , run    -- run/runFile call parseLazy
+module Run
+        ( run    -- run/runFile call parseLazy
+        , runFile
         , formatParse
         , formatParseFile
         ) where
 
-import Unlambda.AST
-import Unlambda.UserInputHandler
-import Unlambda.Parser
-import Unlambda.Interpreter
+import AST
+import UserInputHandler
+import Parser
+import Interpreter
 
 {-
 The main file for running Unlambda programs as strings.

@@ -1,0 +1,75 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.33.0.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: 942272d450f05704d58e7c5c8506a96199852c0972ad7f738d7549f8bc98e8da
+
+name:           Unlambda
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/NicklasBoto/Unlambda#readme>
+homepage:       https://github.com/NicklasBoto/Unlambda#readme
+bug-reports:    https://github.com/NicklasBoto/Unlambda/issues
+author:         Nicklas Botö
+maintainer:     mail@nicklasbotö.se
+copyright:      2020 Nicklas Botö
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+
+source-repository head
+  type: git
+  location: https://github.com/NicklasBoto/Unlambda
+
+library
+  exposed-modules:
+      AST
+      Interpreter
+      Lib
+      Parser
+      Run
+      UserInputHandler
+  other-modules:
+      Paths_Unlambda
+  hs-source-dirs:
+      src
+  build-depends:
+      base >=4.7 && <5
+    , directory
+    , parsec
+    , turtle
+  default-language: Haskell2010
+
+executable gui
+  main-is: Main.hs
+  other-modules:
+      Paths_Unlambda
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      Unlambda
+    , base >=4.7 && <5
+    , directory
+    , parsec
+    , turtle
+  default-language: Haskell2010
+
+test-suite Unlambda-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_Unlambda
+  hs-source-dirs:
+      test
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      Unlambda
+    , base >=4.7 && <5
+    , directory
+    , parsec
+    , turtle
+  default-language: Haskell2010

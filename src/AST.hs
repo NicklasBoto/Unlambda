@@ -1,6 +1,6 @@
 {-# LANGUAGE UnicodeSyntax #-}
 
-module Unlambda.AST 
+module AST 
         ( Aλ (A, E)
         , Eλ (K, Kf, S, Sf, Sff, I, D, R, V)
         ) where

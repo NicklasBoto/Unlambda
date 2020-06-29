@@ -1,12 +1,12 @@
 {-# LANGUAGE UnicodeSyntax #-}
 
-module Unlambda.Interpreter
+module Interpreter
         ( collapse
         , showEλ
         ) where
 
 import Control.Monad
-import Unlambda.AST
+import AST
 
 -----------------------------------------------------------------------
 ------------------------ Interpreter Logic ----------------------------
